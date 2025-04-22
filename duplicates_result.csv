@@ -1,0 +1,7 @@
+link,first name,middle name,surname,dob,birthplace,condition
+"link1 - https://example.com/1, link2 - https://example.com/20",John,Michael,Doe,1990-02-15,"New York, USA","At least two initials, DOB & birthplace match"
+"link1 - https://example.com/1, link2 - https://example.com/20",Emma,Grace,Smith,1985-11-22,"London, UK",All conditions match
+"link1 - https://example.com/1, link2 - https://example.com/20",Carlos,Alberto,Perez,1992-06-03,"Madrid, Spain",All conditions match
+"link1 - https://example.com/2, link2 - https://example.com/21",Sophia,Marie,Johnson,1993-12-09,"Sydney, Australia",Initials & birthplace match but DOB doesn't match
+"link1 - https://example.com/21, link2 - https://example.com/22",Liam,Rodney,Williams,1981-08-12,"Las Palmas, USA","At least two initials, DOB & birthplace match"
+"link1 - https://example.com/21, link2 - https://example.com/22",Sophia,Marie,Johnson,1998-12-09,"Sydney, Australia","At least two initials, DOB & birthplace match"

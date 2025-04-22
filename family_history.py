@@ -2,6 +2,8 @@
 # from bs4 import BeautifulSoup
 # import time
 # from fake_useragent import UserAgent
+import csv
+from datetime import datetime
 
 # def main():
 #     url = 'https://www.familysearch.org/search/linker?pal=/ark:/61903/1:1:6KWH-3JY5&id=LB9F-478&cid=byurll'
@@ -172,6 +174,14 @@ persons_info_dict = {
 # same person - different dob but name and place of birth match
 # same person - different spelling of name or two of three initials match
 
+def is_age_within_5_years(dob1: str, dob2: str) -> bool:
+    date_format = "%Y-%m-%d"  # Assuming the date format is YYYY-MM-DD
+    birth_date1 = datetime.strptime(dob1, date_format)
+    birth_date2 = datetime.strptime(dob2, date_format)
+    age_difference = abs(birth_date1.year - birth_date2.year)
+    return age_difference <= 5
+
+
 def compare_initials(person1, person2):
     person1_initials = get_initials_from_person(person1)
     person2_initials = get_initials_from_person(person2)
@@ -202,15 +212,15 @@ def get_initials_from_person(person: dict):
 
 
 def compare_persons(person1: dict, person2: dict):
-    # compare based on name, birthplace and dob
-    if(get_initials_from_person(person1) == get_initials_from_person(person2) and person1["birthplace"] == person2["birthplace"] and person1["dob"] == person2["dob"]):
+    # compare based on name, birthplace and dob is within a differnce of 5 years
+    if(get_initials_from_person(person1) == get_initials_from_person(person2) and person1["birthplace"] == person2["birthplace"] and is_age_within_5_years(person1["dob"], person2["dob"])):
         return True, "All conditions match"
     
-    elif(get_initials_from_person(person1) == get_initials_from_person(person2) and person1["birthplace"] != person2["birthplace"] and person1["dob"] == person2["dob"]):
-        return True, "Initials & DOB match but birthplace doesn't match"
+    elif(get_initials_from_person(person1) == get_initials_from_person(person2) and person1["birthplace"] != person2["birthplace"] and is_age_within_5_years(person1["dob"], person2["dob"])):
+        return True, "Initials & DOB within 5 years but birthplace doesn't match"
     
-    elif(get_initials_from_person(person1) == get_initials_from_person(person2) and person1["birthplace"] == person2["birthplace"] and person1["dob"] != person2["dob"]):
-        return True, "Initials & birthplace match but DOB doesn't match"
+    elif(get_initials_from_person(person1) == get_initials_from_person(person2) and person1["birthplace"] == person2["birthplace"] and not is_age_within_5_years(person1["dob"], person2["dob"])):
+        return True, "Initials & birthplace match but DOB difference is greater than 5 years"
     
     # update this condition to check if two of three initials match
     elif(compare_initials(person1, person2) and person1["birthplace"] == person2["birthplace"] and person1["dob"] == person2["dob"]):
@@ -243,13 +253,26 @@ def get_duplicates(persons_info_dict):
     return duplicate_person, links_list, conditions_list
 
 
+def save_duplicates_to_csv(duplicate_person, link_list, conditions_list):
+    csv_data = []
+    for person, link, condition in zip(duplicate_person, link_list, conditions_list):
+        first_name, middle_name, surname = person["name"].split(" ", 2)
+        dob = person["dob"]
+        birthplace = person["birthplace"] 
+        csv_data.append([link, first_name, middle_name, surname, dob, birthplace, condition])
+
+    # Write to CSV
+    with open('duplicates_result.csv', mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["link", "first name", "middle name", "surname", "dob", "birthplace", "condition"])
+        writer.writerows(csv_data)
+
+
 def main():
     duplicate_person, link_list, conditions_list = get_duplicates(persons_info_dict)
-    print(f"Duplicate persons found:\n")
     if len(duplicate_person) > 0:
-        for person, link, condition in zip(duplicate_person, link_list, conditions_list):
-                print(f'Person: {person} \nLinks: {link} \nCondition met: {condition} ')
-                print("-----------------------------------------------------------------------------------------------------")
+        save_duplicates_to_csv(duplicate_person, link_list, conditions_list)
+        print('Duplicates found! Saved to CSV...')
     else:
         print("No duplicates found")
 
